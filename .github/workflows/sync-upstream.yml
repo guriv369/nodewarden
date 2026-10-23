@@ -1,0 +1,21 @@
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: '0 19 * * *'   # 北京时间 03:00 = UTC 前一天 19:00
+  workflow_dispatch:        # 支持手动立即跑一次
+
+permissions:
+  contents: write           # 必须要，否则 403
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge upstream into fork
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/merge-upstream" \
+            -f branch="${{ github.event.repository.default_branch }}" \
+            --jq '.merge_type + "  " + (.message // "")'
